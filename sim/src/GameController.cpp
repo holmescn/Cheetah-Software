@@ -29,8 +29,10 @@ GameController::GameController(QObject *parent) : QObject(parent) {
  * plugged in
  */
 void GameController::findNewController() {
-  delete _qGamepad;
-  _qGamepad = nullptr;  // in case this doesn't work!
+  if (_qGamepad) {
+    delete _qGamepad;
+    _qGamepad = nullptr;  // in case this doesn't work!
+  }
 
   printf("[Gamepad] Searching for gamepads, please ignore \"Device discovery cannot open device\" errors\n");
   auto gamepadList = QGamepadManager::instance()->connectedGamepads();

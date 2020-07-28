@@ -36,10 +36,10 @@ ground-plane:
     restitution: 0
     depth: 2.0
     width: 1.5
-    height: .3
+    height: 0.3
     position:  [1.5, 0, 0.23]
     orientation: [0,.0,0]  # roll pitch yaw
-    transparent: 1
+    transparent: 0
 
 #box-2:
     #type: "box"
@@ -51,7 +51,6 @@ ground-plane:
     #position:  [1.175, 0, -0.48]
     #orientation: [0,.0,0]  # roll pitch yaw
     #transparent: 1
-
     
 #stairs-1:
     type: "stairs"

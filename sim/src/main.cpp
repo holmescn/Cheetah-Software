@@ -34,6 +34,12 @@ int main(int argc, char *argv[]) {
   SimControlPanel panel;
   panel.show();
 
+  QString styleSheet = "QWidget {"
+  "background-color: #111;"
+  "color: white;"
+  "}";
+  a.setStyleSheet(styleSheet);
+
   // run the Qt program
   a.exec();
 

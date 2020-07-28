@@ -5,8 +5,7 @@
 #ifndef _RT_RC_INTERFACE
 #define _RT_RC_INTERFACE
 
-class rc_control_settings {
-  public:
+struct rc_control_settings {
     double     mode;
     double     p_des[2]; // (x, y) -1 ~ 1
     double     height_variation; // -1 ~ 1

@@ -259,6 +259,7 @@ void SimulationBridge::runRobotControl() {
  */
 void SimulationBridge::run_sbus() {
   printf("[run_sbus] starting...\n");
+  /*
   int port = init_sbus(true);  // Simulation
   while (true) {
     if (port > 0) {
@@ -269,4 +270,5 @@ void SimulationBridge::run_sbus() {
     }
     usleep(5000);
   }
+  */
 }

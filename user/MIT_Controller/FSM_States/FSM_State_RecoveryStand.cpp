@@ -29,9 +29,9 @@ FSM_State_RecoveryStand<T>::FSM_State_RecoveryStand(ControlFSMData<T>* _controlF
   // goal configuration
   // Folding
   fold_jpos[0] << -0.0f, -1.4f, 2.7f;
-  fold_jpos[1] << 0.0f, -1.4f, 2.7f;
+  fold_jpos[1] <<  0.0f, -1.4f, 2.7f;
   fold_jpos[2] << -0.0f, -1.4f, 2.7f;
-  fold_jpos[3] << 0.0f, -1.4f, 2.7f;
+  fold_jpos[3] <<  0.0f, -1.4f, 2.7f;
   // Stand Up
   for(size_t i(0); i<4; ++i){
     //stand_jpos[i] << 0.f, -.9425f, 1.885f;
@@ -197,7 +197,6 @@ void FSM_State_RecoveryStand<T>::_StandUp(const int & curr_iter){
 
 template <typename T>
 void FSM_State_RecoveryStand<T>::_FoldLegs(const int & curr_iter){
-
   for(size_t i(0); i<4; ++i){
     _SetJPosInterPts(curr_iter, fold_ramp_iter, i, 
         initial_jpos[i], fold_jpos[i]);

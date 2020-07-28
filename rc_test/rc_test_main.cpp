@@ -55,7 +55,7 @@ void print_sbus(Taranis_X7_data& data) {
 }
 
 void print_left_y() {
- // printf("[%6.3f]\n", data.left_stick[1]);
+  // printf("[%6.3f]\n", data.left_stick[1]);
   printf("cmd: %.3f\n", main_control_settings.v_des[0]);
   int cmd_int = (main_control_settings.v_des[0] * 50) + 50;
   for(int i = 0; i < cmd_int; i++) {

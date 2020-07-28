@@ -28,11 +28,11 @@
 #include <lcm-cpp.hpp>
 
 class RobotRunner : public PeriodicTask {
- public:
+public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using PeriodicTask::PeriodicTask;
 
   RobotRunner(RobotController* , PeriodicTaskManager*, float, std::string);
-  using PeriodicTask::PeriodicTask;
   void init() override;
   void run() override;
   void cleanup() override;
@@ -55,20 +55,16 @@ class RobotRunner : public PeriodicTask {
   VisualizationData* visualizationData;
   CheetahVisualization* cheetahMainVisualization;
 
- private:
-  float _ini_yaw;
-
-  int iter = 0;
-
+private:
   void setupStep();
   void finalizeStep();
 
   JPosInitializer<float>* _jpos_initializer;
   Quadruped<float> _quadruped;
-  LegController<float>* _legController = nullptr;
+  LegController<float>* _legController;
   StateEstimate<float> _stateEstimate;
   StateEstimatorContainer<float>* _stateEstimator;
-  bool _cheaterModeEnabled = false;
+  bool _cheaterModeEnabled;
   DesiredStateCommand<float>* _desiredStateCommand;
   rc_control_settings rc_control;
   lcm::LCM _lcm;
@@ -77,8 +73,10 @@ class RobotRunner : public PeriodicTask {
   leg_control_data_lcmt leg_control_data_lcm;
   // Contact Estimator to calculate estimated forces and contacts
 
+  float _ini_yaw;
+
   FloatingBaseModel<float> _model;
-  u64 _iterations = 0;
+  u64 _iterations;
 };
 
 #endif  // PROJECT_ROBOTRUNNER_H

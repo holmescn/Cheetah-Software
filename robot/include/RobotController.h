@@ -17,11 +17,11 @@
 /*!
  * Parent class of user robot controllers
  */
-class RobotController{
+class RobotController {
   friend class RobotRunner;
 public:
-  RobotController(){}
-  virtual ~RobotController(){}
+  RobotController() = default;
+  virtual ~RobotController() = default;
 
   virtual void initializeController() = 0;
 /**

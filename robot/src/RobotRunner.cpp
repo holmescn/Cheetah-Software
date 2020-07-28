@@ -16,23 +16,26 @@
 #include "ParamHandler.hpp"
 #include "Utilities/Timer.h"
 #include "Controllers/PositionVelocityEstimator.h"
-//#include "rt/rt_interface_lcm.h"
+// #include "rt/rt_interface_lcm.h"
 
-RobotRunner::RobotRunner(RobotController* robot_ctrl, 
-    PeriodicTaskManager* manager, 
-    float period, std::string name):
-  PeriodicTask(manager, period, name),
-  _lcm(getLcmUrl(255)) {
+RobotRunner::RobotRunner(
+  RobotController* robot_ctrl, 
+  PeriodicTaskManager* manager, 
+  float period, std::string name)
+  : PeriodicTask(manager, period, name),
+    _robot_ctrl(robot_ctrl),
+    _lcm(getLcmUrl(255)),
+    _ini_yaw(0.0),
+    _iterations(0) {
 
-    _robot_ctrl = robot_ctrl;
-  }
+}
 
 /**
  * Initializes the robot model, state estimator, leg controller,
  * robot data, and any control logic specific data.
  */
 void RobotRunner::init() {
-  printf("[RobotRunner] initialize\n");
+  puts("[RobotRunner] initialize");
 
   // Build the appropriate Quadruped object
   if (robotType == RobotType::MINI_CHEETAH) {
@@ -74,7 +77,6 @@ void RobotRunner::init() {
   _robot_ctrl->_desiredStateCommand = _desiredStateCommand;
 
   _robot_ctrl->initializeController();
-
 }
 
 /**
@@ -91,35 +93,37 @@ void RobotRunner::run() {
   // Update the data from the robot
   setupStep();
 
-  static int count_ini(0);
-  ++count_ini;
-  if (count_ini < 10) {
-    _legController->setEnabled(false);
-  } else if (20 < count_ini && count_ini < 30) {
-    _legController->setEnabled(false);
-  } else if (40 < count_ini && count_ini < 50) {
+  if (_iterations < 10 ||
+      (20 < _iterations && _iterations < 30) ||
+      (40 < _iterations && _iterations < 50)) {
     _legController->setEnabled(false);
   } else {
     _legController->setEnabled(true);
-
-    if( (rc_control.mode == 0) && controlParameters->use_rc ) {
-      if(count_ini%1000 ==0)   printf("ESTOP!\n");
+    if ( false && fabs(rc_control.mode) < 1e-10 && controlParameters->use_rc ) {
       for (int leg = 0; leg < 4; leg++) {
         _legController->commands[leg].zero();
       }
       _robot_ctrl->Estop();
-    }else {
+    } else {
       // Controller
       if (!_jpos_initializer->IsInitialized(_legController)) {
         Mat3<float> kpMat;
         Mat3<float> kdMat;
         // Update the jpos feedback gains
         if (robotType == RobotType::MINI_CHEETAH) {
-          kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
-          kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+          kpMat << 5, 0, 0,
+                   0, 5, 0,
+                   0, 0, 5;
+          kdMat << 0.1, 0.0, 0.0,
+                   0.0, 0.1, 0.0,
+                   0.0, 0.0, 0.1;
         } else if (robotType == RobotType::CHEETAH_3) {
-          kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
-          kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
+          kpMat << 50,  0,  0,
+                    0, 50,  0,
+                    0,  0, 50;
+          kdMat << 1, 0, 0,
+                   0, 1, 0,
+                   0, 0, 1;
         } else {
           assert(false);
         } 
@@ -138,14 +142,11 @@ void RobotRunner::run() {
         cheetahMainVisualization->p = _stateEstimate.position;
       }
     }
-
   }
 
-
-
   // Visualization (will make this into a separate function later)
-  for (int leg = 0; leg < 4; leg++) {
-    for (int joint = 0; joint < 3; joint++) {
+  for (int leg = 0; leg < 4; ++leg) {
+    for (int joint = 0; joint < 3; ++joint) {
       cheetahMainVisualization->q[leg * 3 + joint] =
         _legController->datas[leg].q[joint];
     }
@@ -209,6 +210,7 @@ void RobotRunner::finalizeStep() {
   } else {
     assert(false);
   }
+
   _legController->setLcm(&leg_control_data_lcm, &leg_control_command_lcm);
   _stateEstimate.setLcm(state_estimator_lcm);
   _lcm.publish("leg_control_command", &leg_control_command_lcm);
@@ -242,4 +244,6 @@ RobotRunner::~RobotRunner() {
   delete _jpos_initializer;
 }
 
-void RobotRunner::cleanup() {}
+void RobotRunner::cleanup() {
+
+}

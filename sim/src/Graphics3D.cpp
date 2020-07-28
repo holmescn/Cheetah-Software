@@ -20,7 +20,8 @@
 #include <iostream>
 
 // background color
-static constexpr auto clearColor = windows2000;
+//static constexpr auto clearColor = windows2000;
+static constexpr float clearColor[] = {0.0f, 0.0f, 0.0f};
 
 // shader program for drawing models where each vertex is assigned a color
 static constexpr char vertexShaderSourceColorArray[] = R"(
@@ -392,17 +393,17 @@ void Graphics3D::renderDrawlist() {
 
   // draw objects with color arrays
   if(show_floor) {
-      _colorArrayProgram->bind();
+    _colorArrayProgram->bind();
 
-  glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
-  glVertexAttribPointer(_posAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
-  glVertexAttribPointer(_colAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
-  glVertexAttribPointer(_normAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
+    glVertexAttribPointer(_posAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
+    glVertexAttribPointer(_colAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
+    glVertexAttribPointer(_normAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
     //printf("colored object # %ld %d %d\n", id, _drawList.getCanBeHidden(id), show_robot);
@@ -412,12 +413,13 @@ void Graphics3D::renderDrawlist() {
           _colorArrayProgram->setUniformValue(
             _matrixUniformColorArray,
             _cameraMatrix * _drawList.getModelKinematicTransform(id) *
-                _drawList.getModelBaseTransform(id));
+                _drawList.getModelBaseTransform(id)
+          );
 
           glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3,
                     _drawList.getGLDrawArraySize(id) / 3);
         }
-    }
+      }
     }
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(1);
@@ -427,7 +429,6 @@ void Graphics3D::renderDrawlist() {
 
     _colorArrayProgram->release();
   }
-
 
   // draw objects without color arrays
   _solidColorProgram->bind();

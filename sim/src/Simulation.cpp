@@ -265,14 +265,13 @@ void Simulation::handleControlError() {
   _running = false;
   _connected = false;
   _uiUpdate();
-  if(!_sharedMemory().robotToSim.errorMessage[0]) {
+  if(_sharedMemory().robotToSim.errorMessage[0] == '\0') {
     printf(
       "[ERROR] Control code timed-out!\n");
-    _errorCallback("Control code has stopped responding without giving an error message.\nIt has likely crashed - "
-                   "check the output of the control code for more information");
-
+      _errorCallback("Control code has stopped responding without giving an error message.\nIt has likely crashed - "
+                     "check the output of the control code for more information");
   } else {
-    printf("[ERROR] Control code has an error!\n");
+    printf("[ERROR] Control code has an error: %s!\n", _sharedMemory().robotToSim.errorMessage);
     _errorCallback("Control code has an error:\n" + std::string(_sharedMemory().robotToSim.errorMessage));
   }
 

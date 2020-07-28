@@ -84,8 +84,8 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   float _color2[3] = {0.553970, 0.477397, 0.628871};
   float _color3[3] = {0.335223, 0.768230, 0.277775};
 
-  bool show_floor = true;
-  bool show_robot = true;
+  bool show_floor = false;
+  bool show_robot = false;
 
  private:
   GameController _gameController;

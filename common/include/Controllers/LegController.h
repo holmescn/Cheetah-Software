@@ -55,7 +55,7 @@ struct LegControllerData {
  */
 template <typename T>
 class LegController {
- public:
+public:
   LegController(Quadruped<T>& quad) : _quadruped(quad) {
     for (auto& data : datas) data.setQuadruped(_quadruped);
   }

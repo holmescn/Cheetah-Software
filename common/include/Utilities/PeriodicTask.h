@@ -17,7 +17,7 @@ class PeriodicTaskManager;
  * A single periodic task which will call run() at the given frequency
  */
 class PeriodicTask {
- public:
+public:
   PeriodicTask(PeriodicTaskManager* taskManager, float period,
                std::string name);
   void start();
