@@ -1,23 +1,23 @@
 #include "StandUpCtrl.h"
 
 StandUpCtrl::StandUpCtrl(LegController<float> *legCtrl, StateEstimatorContainer<float> *stateEstimator)
-: StateCtrl(legCtrl, stateEstimator)
+: ActionCtrl(legCtrl, stateEstimator)
 {
   // 定义站立时的角度
-  float a0  = 0.0f;
-  float af1 = deg2rad(-45.0f);
-  float af2 = deg2rad( 90.0f);
-  float ab1 = deg2rad(-40.0f);
-  float ab2 = deg2rad( 80.0f);
+  float f0 = deg2rad(  0.0f);
+  float f1 = deg2rad(-45.0f);
+  float f2 = deg2rad( 90.0f);
+  float b0 = deg2rad(  0.0f);
+  float b1 = deg2rad(-55.0f);
+  float b2 = deg2rad( 80.0f);
 
-  _final_jpos << a0,  a0,  a0,  a0,
-                 af1, af1, ab1, ab1,
-                 af2, af2, ab2, ab2;
-
-  _kp = make_mat3f(15.0);
+  _target_jpos << f0, f1, f2,
+                  f0, f1, f2,
+                  b0, b1, b2,
+                  b0, b1, b2;
 }
 
-int StandUpCtrl::step(Mat34<float>& jPos)
+int StandUpCtrl::step(Mat43f& init_jpos)
 {
   auto est = _stateEstimator->getResult();
   float body_height = est.position[2];
@@ -30,11 +30,11 @@ int StandUpCtrl::step(Mat34<float>& jPos)
     printf("[Warning] body height is still too low (%f) or UpsideDown (%d); Folding legs.\n",
       body_height, _IsUpsideDown());
   } else {
-    float progress = _iteration / _motion_total_iterations;
-    for(size_t leg(0); leg<4; ++leg){
-      Vec3<float> qDes = _interplation(leg, jPos, _final_jpos, progress);
-      _SetJointPD(leg, qDes);
-    }
+    _JointPD(init_jpos, _target_jpos, _motion_total_iterations);
+
+    auto kp = diag3f(40.0f);
+    _legCtrl->commands[LEG_B_L].kpJoint = kp;
+    _legCtrl->commands[LEG_B_R].kpJoint = kp;
   }
 
   // feed forward mass of robot.

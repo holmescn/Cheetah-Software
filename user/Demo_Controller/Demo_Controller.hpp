@@ -3,22 +3,24 @@
 
 #include <RobotController.h>
 #include "DemoUserParameters.h"
-#include "StateCtrl.h"
+#include "ActionCtrl.h"
 
 class DemoController : public RobotController {
   enum class State {
-    PreStandUp,
+    Init,
     StandUp,
-    PreFoldLegs,
+    Walk,
     FoldLegs,
+    Idle,
   } _state;
 
 public:
-  DemoController() : RobotController(), _iteration(0) {
-    
+  DemoController() : _state(State::Init), _iteration(0), _actionCtrl(nullptr) {
   }
   ~DemoController() override {
-    delete _standUpCtrl;
+    if (_actionCtrl) {
+      delete _actionCtrl;
+    }
   }
 
   virtual void initializeController();
@@ -30,14 +32,23 @@ public:
 
 private:
   void debugPrint();
-  void _StandUp();
   void _UpdateJPos();
+  template<class T>
+  void _DoActionForState(State nextState) {
+    if (_actionCtrl == nullptr) {
+      _actionCtrl = new T(_legController, _stateEstimator);
+      _actionCtrl->init();
+    } else if (_actionCtrl->step(_jpos)) {
+      delete _actionCtrl;
+      _actionCtrl = nullptr;
+      _state = nextState;
+    }
+  }
 
 protected:
   size_t _iteration;
-  StateCtrl *_standUpCtrl;
-  StateCtrl *_foldLegsCtrl;
-  Mat34<float> _jpos;
+  ActionCtrl *_actionCtrl;
+  Mat43f _jpos;
   DemoUserParameters userParameters;
 };
 

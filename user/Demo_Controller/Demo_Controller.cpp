@@ -1,11 +1,11 @@
 #include "Demo_Controller.hpp"
 #include "StandUpCtrl.h"
 #include "FoldLegsCtrl.h"
+#include "WalkCtrl.h"
+
 
 void DemoController::initializeController() {
   _jpos.setZero();
-  _standUpCtrl = new StandUpCtrl(_legController, _stateEstimator);
-  _foldLegsCtrl = new FoldLegsCtrl(_legController, _stateEstimator);
 }
 
 /**
@@ -13,48 +13,32 @@ void DemoController::initializeController() {
  * joint(0) 脚 joint(1) 肩 joint(2) 肘
  */
 void DemoController::runController() {
-  if (++_iteration < 10) {
+  switch (_state) {
+    case State::Init:
     _UpdateJPos();
-  } else {
-    switch (_state)
-    {
-    case State::PreStandUp:
-      _UpdateJPos();
-      _standUpCtrl->init();
-      _state = State::StandUp;
-      break;
-    case State::StandUp:
-      if (_standUpCtrl->step(_jpos)) {
-        _state = State::PreFoldLegs;
-      }
-      break;
-    case State::PreFoldLegs:
-      _UpdateJPos();
-      _foldLegsCtrl->init();
-      _state = State::FoldLegs;
-      break;
-    case State::FoldLegs:
-      if (_foldLegsCtrl->step(_jpos)) {
-        _state = State::PreStandUp;
-      }
-      break;
-    default:
-      assert(false);
-      break;
-    }
-  }
-}
-
-void DemoController::_StandUp() {
-  if (_standUpCtrl->step(_jpos)) {
-
+    if (++_iteration >= 10) _state = State::StandUp;
+    break;
+  case State::StandUp:
+    _DoActionForState<StandUpCtrl>(State::Walk);
+    break;
+  case State::Walk:
+    _DoActionForState<WalkCtrl>(State::FoldLegs);
+    break;
+  case State::FoldLegs:
+    _DoActionForState<FoldLegsCtrl>(State::StandUp);
+    break;
+  case State::Idle:
+    break;
+  default:
+    assert(false);
+    break;
   }
 }
 
 void DemoController::_UpdateJPos() {
   for(size_t leg(0); leg<4; ++leg) {
     for(size_t joint(0); joint<3; ++joint) {
-      _jpos(joint, leg) = _legController->datas[leg].q[joint];
+      _jpos(leg, joint) = _legController->datas[leg].q[joint];
     }
   }
 }
