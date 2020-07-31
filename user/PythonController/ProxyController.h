@@ -69,7 +69,7 @@ public:
 class __attribute__((visibility("hidden"))) ProxyController : public RobotController {
     pybind11::object _f_initialize, _f_run;
 public:
-    ProxyController(pybind11::object &obj);
+    ProxyController(pybind11::object obj);
     virtual ~ProxyController() = default;
 
     void initializeController() override {
@@ -84,16 +84,32 @@ public:
         // ignore this callback
     }
 
-    ControlParameters* getUserControlParameters() override {
+    inline ControlParameters* getUserControlParameters() override {
         return nullptr;
     }
 
-    std::unique_ptr<LegProxy> GetLeg(size_t leg) const {
+    inline std::unique_ptr<LegProxy> GetLeg(size_t leg) const {
         return std::make_unique<LegProxy>(_legController, leg);
     }
 
-    std::unique_ptr<StateProxy> GetState() const {
+    inline std::unique_ptr<StateProxy> GetState() const {
         return std::make_unique<StateProxy>(_stateEstimator);
+    }
+
+    inline void SetEnable(bool bEnable) {
+        _legController->setEnabled(bEnable);
+    }
+
+    inline void SetMaxTorque(int x) {
+        _legController->_maxTorque = x;
+    }
+
+    inline void SetEncodeZeros(bool bEnable) {
+        _legController->_zeroEncoders = bEnable;
+    }
+
+    inline void SetCalibrate(uint32_t calibrate) {
+        _legController->_calibrateEncoders = calibrate;
     }
 };
 

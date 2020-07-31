@@ -29,7 +29,11 @@ PYBIND11_EMBEDDED_MODULE(robot, m) {
     .def("initialize", &BaseController::initialize)
     .def("run", &BaseController::run)
     .def("leg", &BaseController::GetLeg)
-    .def_property_readonly("state", &BaseController::GetState);
+    .def_property_readonly("state", &BaseController::GetState)
+    .def_property("enable", nullptr, &BaseController::SetEnable)
+    .def_property("max_torque", nullptr, &BaseController::SetMaxTorque)
+    .def_property("encode_zeros", nullptr, &BaseController::SetEncodeZeros)
+    .def_property("calibrate", nullptr, &BaseController::SetCalibrate);
 
   py::class_<LegProxy>(m, "LegProxy")
     .def_property_readonly("q", &LegProxy::GetJointAngular)
@@ -60,14 +64,6 @@ PYBIND11_EMBEDDED_MODULE(robot, m) {
     .def_property_readonly("v_world", &StateProxy::GetVWorld)
     .def_property_readonly("omega_world", &StateProxy::GetOmegaWorld)
     .def_property_readonly("rpy", &StateProxy::GetRPY);
-
-  m.def("rad2deg", [](const Eigen::Vector3f &v) -> Eigen::Vector3f {
-    return v * 180.0f / 3.1415926f;
-  });
-
-  m.def("deg2rad", [](const Eigen::Vector3f &v) -> Eigen::Vector3f {
-    return v * 3.1415926f / 180.0f;
-  });
 }
 
 void LoadScript(const char* filename, py::object &scope)
@@ -135,8 +131,10 @@ int main(int argc, char** argv) {
   printf("   Driver: %s\n", cfg.simulated ? "Development Simulation Driver" : "Quadruped Driver");
 
   // Create controller
-  py::object pyObj = py::eval(controllerClassName + "()", scope);
-  std::unique_ptr<ProxyController> proxy = std::make_unique<ProxyController>(pyObj);
+  puts("[DEBUG] Create global controller instance");
+  py::exec("g_controller = " + controllerClassName + "()", scope);
+  puts("[DEBUG] Fetch global controller instance");
+  std::unique_ptr<ProxyController> proxy = std::make_unique<ProxyController>(scope["g_controller"]);
 
   // dispatch the appropriate driver
   if (cfg._robot == RobotType::MINI_CHEETAH) {

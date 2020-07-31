@@ -5,6 +5,9 @@ CONTROLLER_CLASS_NAME = "TestCtrl"
 
 
 class TestCtrl(BaseController):
+    def __init__(self):
+        BaseController.__init__(self)
+
     def initialize(self):
         _ = self.leg(1).q
         _ = self.leg(2).dq
@@ -25,3 +28,13 @@ class TestCtrl(BaseController):
 
     def run(self):
         print("run")
+        _ = self.state.contact
+        _ = self.state.position
+        _ = self.state.orientation
+        _ = self.state.a_body
+        _ = self.state.v_body
+        _ = self.state.r_body
+        _ = self.state.omega_body
+        _ = self.state.a_world
+        _ = self.state.v_world
+        _ = self.state.omega_world

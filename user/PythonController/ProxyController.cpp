@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-ProxyController::ProxyController(pybind11::object &obj)
+ProxyController::ProxyController(pybind11::object obj)
 {
   BaseController *base = obj.cast<BaseController*>();
   base->SetProxy(this);
