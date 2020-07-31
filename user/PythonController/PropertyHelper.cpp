@@ -2,7 +2,7 @@
 
 #include <cstdio>
 #include "BaseController.h"
-#include "ProxyController.h"
+#include "PropertyHelper.h"
 
 namespace py = pybind11;
 

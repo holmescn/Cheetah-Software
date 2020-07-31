@@ -2,26 +2,71 @@
 
 #include <pybind11/pybind11.h>
 #include "BaseController.h"
-#include "ProxyController.h"
+#include "PropertyHelper.h"
+
+namespace py = pybind11;
+
+BaseController::BaseController()
+{
+    //
+}
+
+void BaseController::SetPyInstance(pybind11::object o)
+{
+    _py_instance = o;
+    _fn_initialize = py::cast<py::none>(Py_None);
+    if (py::hasattr(o, "initialize")) {
+        _fn_initialize = o["initialize"];
+    }
+
+    _fn_run = py::cast<py::none>(Py_None);
+    if (py::hasattr(o, "run")) {
+        _fn_run = o["run"];
+    }
+}
+
+void BaseController::initializeController()
+{
+    if (!_fn_initialize.is_none()) {
+        _fn_initialize();
+    }
+}
+
+void BaseController::runController()
+{
+    if (!_fn_run.is_none()) {
+        _fn_run();
+    }
+}
+
+void BaseController::updateVisualization()
+{
+    // ignored right now.
+}
+
+ControlParameters* getUserControlParameters()
+{
+    return nullptr;
+}
 
 void BaseController::SetEnable(bool bEnable)
 {
-    _proxy->SetEnable(bEnable);
+    _legController->_legsEnabled = bEnable;
 }
 
-void BaseController::SetMaxTorque(int x)
+void BaseController::SetMaxTorque(float maxTorque)
 {
-    _proxy->SetMaxTorque(x);
+    _legController->_maxTorque = maxTorque;
 }
 
 void BaseController::SetEncodeZeros(bool bEnable)
 {
-    _proxy->SetEncodeZeros(bEnable);
+    _legController->_zeroEncoders = bEnable;
 }
 
 void BaseController::SetCalibrate(uint32_t calibrate)
 {
-    _proxy->SetCalibrate(calibrate);
+    _legController->_calibrateEncoders = calibrate;
 }
 
 std::unique_ptr<LegProxy> BaseController::GetLeg(size_t leg) const
@@ -29,32 +74,56 @@ std::unique_ptr<LegProxy> BaseController::GetLeg(size_t leg) const
     if (leg > 3) {
         throw std::invalid_argument("leg should be in [0, 3].");
     }
-    return _proxy->GetLeg(leg);
+    return std::make_unique<LegProxy>(_legController, leg);
 }
 
 std::unique_ptr<StateProxy> BaseController::GetState() const
 {
-    return _proxy->GetState();
+    return std::make_unique<StateProxy>(_stateEstimator);
 }
 
 Eigen::Matrix<float, 4, 3> BaseController::GetJointAngular() const
 {
-
+    Eigen::Matrix<float, 4, 3> m;
+    for (int l(0); l<4; ++l) {
+        for (int j(0); j<3; ++j) {
+            m(l, j) = _legController->datas[l].q[j];
+        }
+    }
+    return m;
 }
 
 Eigen::Matrix<float, 4, 3> BaseController::GetJointAngularVelocity() const
 {
-
+    Eigen::Matrix<float, 4, 3> m;
+    for (int l(0); l<4; ++l) {
+        for (int j(0); j<3; ++j) {
+            m(l, j) = _legController->datas[l].qd[j];
+        }
+    }
+    return m;
 }
 
 Eigen::Matrix<float, 4, 3> BaseController::GetJointPosition() const
 {
-
+    Eigen::Matrix<float, 4, 3> m;
+    for (int l(0); l<4; ++l) {
+        for (int j(0); j<3; ++j) {
+            m(l, j) = _legController->datas[l].p[j];
+        }
+    }
+    return m;
 }
 
 Eigen::Matrix<float, 4, 3> BaseController::GetJointVelocity() const
 {
-    
+    Eigen::Matrix<float, 4, 3> m;
+    for (int l(0); l<4; ++l) {
+        for (int j(0); j<3; ++j) {
+            m(l, j) = _legController->datas[l].v[j];
+        }
+    }
+    return m;
 }
 
 void PyBaseController::initialize()

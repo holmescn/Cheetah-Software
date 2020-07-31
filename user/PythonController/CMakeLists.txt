@@ -7,7 +7,7 @@ include_directories("/usr/local/include/eigen3")
 
 add_subdirectory(pybind11)
 
-add_executable(python_ctrl main.cpp BaseController.cpp ProxyController.cpp)
+add_executable(python_ctrl main.cpp BaseController.cpp PropertyHelper.cpp)
 target_link_libraries(python_ctrl
     PRIVATE pybind11::embed
     robot biomimetics dynacore_param_handler qpOASES

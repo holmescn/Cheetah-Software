@@ -1,5 +1,5 @@
-#ifndef PROXY_CONTROLLER_H
-#define PROXY_CONTROLLER_H
+#ifndef PROPERTY_HELPER_H
+#define PROPERTY_HELPER_H
 #include <tuple>
 #include <memory>
 #include <RobotController.h>
@@ -66,51 +66,51 @@ public:
     Eigen::Vector3f GetOmegaWorld() const;
 };
 
-class __attribute__((visibility("hidden"))) ProxyController : public RobotController {
-    pybind11::object _f_initialize, _f_run;
-public:
-    ProxyController(pybind11::object obj);
-    virtual ~ProxyController() = default;
+// class __attribute__((visibility("hidden"))) ProxyController : public RobotController {
+//     pybind11::object _f_initialize, _f_run;
+// public:
+//     ProxyController(pybind11::object obj);
+//     virtual ~ProxyController() = default;
 
-    void initializeController() override {
-        _f_initialize();
-    }
+//     void initializeController() override {
+//         _f_initialize();
+//     }
 
-    void runController() override {
-        _f_run();
-    }
+//     void runController() override {
+//         _f_run();
+//     }
 
-    void updateVisualization() override {
-        // ignore this callback
-    }
+//     void updateVisualization() override {
+//         // ignore this callback
+//     }
 
-    inline ControlParameters* getUserControlParameters() override {
-        return nullptr;
-    }
+//     inline ControlParameters* getUserControlParameters() override {
+//         return nullptr;
+//     }
 
-    inline std::unique_ptr<LegProxy> GetLeg(size_t leg) const {
-        return std::make_unique<LegProxy>(_legController, leg);
-    }
+//     inline std::unique_ptr<LegProxy> GetLeg(size_t leg) const {
+//         return std::make_unique<LegProxy>(_legController, leg);
+//     }
 
-    inline std::unique_ptr<StateProxy> GetState() const {
-        return std::make_unique<StateProxy>(_stateEstimator);
-    }
+//     inline std::unique_ptr<StateProxy> GetState() const {
+//         return std::make_unique<StateProxy>(_stateEstimator);
+//     }
 
-    inline void SetEnable(bool bEnable) {
-        _legController->setEnabled(bEnable);
-    }
+//     inline void SetEnable(bool bEnable) {
+//         _legController->setEnabled(bEnable);
+//     }
 
-    inline void SetMaxTorque(int x) {
-        _legController->_maxTorque = x;
-    }
+//     inline void SetMaxTorque(int x) {
+//         _legController->_maxTorque = x;
+//     }
 
-    inline void SetEncodeZeros(bool bEnable) {
-        _legController->_zeroEncoders = bEnable;
-    }
+//     inline void SetEncodeZeros(bool bEnable) {
+//         _legController->_zeroEncoders = bEnable;
+//     }
 
-    inline void SetCalibrate(uint32_t calibrate) {
-        _legController->_calibrateEncoders = calibrate;
-    }
-};
+//     inline void SetCalibrate(uint32_t calibrate) {
+//         _legController->_calibrateEncoders = calibrate;
+//     }
+// };
 
-#endif // PROXY_CONTROLLER_H
+#endif // PROPERTY_HELPER_H
