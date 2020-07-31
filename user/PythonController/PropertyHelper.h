@@ -8,18 +8,17 @@
 
 
 class LegProperty {
-    size_t _leg;
+    uint32_t _leg;
     LegController<float> *_legController;
 public:
-    LegProperty(LegController<float> *legCtrl, size_t leg);
+    LegProperty(LegController<float> *legCtrl);
     LegProperty(const LegProperty &) = delete;
     LegProperty(LegProperty &&) = delete;
     LegProperty& operator=(const LegProperty &) = delete;
     LegProperty& operator=(LegProperty &&) = delete;
     ~LegProperty() = default;
 
-    Eigen::Vector3f PyObj2Vec3f(const pybind11::object& o);
-    Eigen::Matrix3f Vec3f2Mat3f(const Eigen::Vector3f &v);
+    inline void SetLeg(uint32_t leg) { _leg = leg; }
 
     Eigen::Vector3f GetJointAngular() const;
     void SetJointAngular(pybind11::object o);

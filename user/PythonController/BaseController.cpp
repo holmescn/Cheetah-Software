@@ -69,12 +69,9 @@ void BaseController::SetCalibrate(uint32_t calibrate)
     _legController->_calibrateEncoders = calibrate;
 }
 
-std::unique_ptr<LegProperty> BaseController::GetLeg(size_t leg) const
+std::unique_ptr<LegProperty> BaseController::GetLeg() const
 {
-    if (leg > 3) {
-        throw std::invalid_argument("leg should be in [0, 3].");
-    }
-    return std::make_unique<LegProperty>(_legController, leg);
+    return std::make_unique<LegProperty>(_legController);
 }
 
 std::unique_ptr<StateProperty> BaseController::GetState() const
@@ -82,48 +79,135 @@ std::unique_ptr<StateProperty> BaseController::GetState() const
     return std::make_unique<StateProperty>(_stateEstimator);
 }
 
-Eigen::Matrix<float, 4, 3> BaseController::GetJointAngular() const
+Matrix43f BaseController::GetJointMatrix(Eigen::Vector3f LegControllerData<float>::* member) const
 {
-    Eigen::Matrix<float, 4, 3> m;
+    Matrix43f m;
     for (int l(0); l<4; ++l) {
         for (int j(0); j<3; ++j) {
-            m(l, j) = _legController->datas[l].q[j];
+            m(l, j) = (_legController->datas[l].*member)[j];
         }
     }
     return m;
 }
 
-Eigen::Matrix<float, 4, 3> BaseController::GetJointAngularVelocity() const
+void BaseController::SetJointMatrix(Eigen::Vector3f LegControllerCommand<float>::* member, const Matrix43f &m)
 {
-    Eigen::Matrix<float, 4, 3> m;
     for (int l(0); l<4; ++l) {
         for (int j(0); j<3; ++j) {
-            m(l, j) = _legController->datas[l].qd[j];
+            (_legController->commands[l].*member)[j] = m(l, j);
         }
     }
-    return m;
 }
 
-Eigen::Matrix<float, 4, 3> BaseController::GetJointPosition() const
+void BaseController::SetJointMatrix(Eigen::Matrix3f LegControllerCommand<float>::* member, const Matrix43f &m)
 {
-    Eigen::Matrix<float, 4, 3> m;
     for (int l(0); l<4; ++l) {
         for (int j(0); j<3; ++j) {
-            m(l, j) = _legController->datas[l].p[j];
+            (_legController->commands[l].*member)(j, j) = m(l, j);
         }
     }
-    return m;
 }
 
-Eigen::Matrix<float, 4, 3> BaseController::GetJointVelocity() const
+Matrix43f BaseController::GetJointAngular() const
 {
-    Eigen::Matrix<float, 4, 3> m;
-    for (int l(0); l<4; ++l) {
-        for (int j(0); j<3; ++j) {
-            m(l, j) = _legController->datas[l].v[j];
-        }
+    if (_legController) {
+        return GetJointMatrix(&LegControllerData<float>::q);
     }
-    return m;
+    return Matrix43f::Zero();
+}
+
+Matrix43f BaseController::GetJointAngularVelocity() const
+{
+    if (_legController) {
+        return GetJointMatrix(&LegControllerData<float>::qd);
+    }
+    return Matrix43f::Zero();
+}
+
+Matrix43f BaseController::GetJointPosition() const
+{
+    if (_legController) {
+        return GetJointMatrix(&LegControllerData<float>::p);
+    }
+    return Matrix43f::Zero();
+}
+
+Matrix43f BaseController::GetJointVelocity() const
+{
+    if (_legController) {
+        return GetJointMatrix(&LegControllerData<float>::v);
+    }
+    return Matrix43f::Zero();
+}
+
+void BaseController::SetJointAngular(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::qDes, m);
+    }
+}
+
+void BaseController::SetJointAngularVelocity(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::qdDes, m);
+    }
+}
+
+void BaseController::SetJointPosition(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::pDes, m);
+    }
+}
+
+void BaseController::SetJointVelocity(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::vDes, m);
+    }
+}
+
+void BaseController::SetJointTau(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::tauFeedForward, m);
+    }
+}
+
+void BaseController::SetJointForce(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::forceFeedForward, m);
+    }
+}
+
+void BaseController::SetKpJoint(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::kpJoint, m);
+    }
+}
+
+void BaseController::SetKdJoint(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::kdJoint, m);
+    }
+}
+
+void BaseController::SetKpCartesian(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::kpCartesian, m);
+    }
+}
+
+void BaseController::SetKdCartesian(Matrix43f m)
+{
+    if (_legController) {
+        SetJointMatrix(&LegControllerCommand<float>::kdCartesian, m);
+    }
 }
 
 void PyBaseController::initialize()

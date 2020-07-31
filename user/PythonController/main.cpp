@@ -28,15 +28,36 @@ PYBIND11_EMBEDDED_MODULE(robot, m) {
     .def(py::init<>())
     .def("initialize", &BaseController::initialize)
     .def("run", &BaseController::run)
-    .def("leg", &BaseController::GetLeg)
+    .def_property_readonly("leg", &BaseController::GetLeg)
     .def_property_readonly("state", &BaseController::GetState)
     .def_property("_instance", nullptr, &BaseController::SetPyInstance)
     .def_property("enable", nullptr, &BaseController::SetEnable)
     .def_property("max_torque", nullptr, &BaseController::SetMaxTorque)
     .def_property("encode_zeros", nullptr, &BaseController::SetEncodeZeros)
-    .def_property("calibrate", nullptr, &BaseController::SetCalibrate);
+    .def_property("calibrate", nullptr, &BaseController::SetCalibrate)
+    .def_property_readonly("q", &BaseController::GetJointAngular)
+    .def_property_readonly("dq", &BaseController::GetJointAngularVelocity)
+    .def_property_readonly("p", &BaseController::GetJointPosition)
+    .def_property_readonly("v", &BaseController::GetJointVelocity)
+    .def_property("desired_q", nullptr, &BaseController::SetJointAngular)
+    .def_property("desired_dq", nullptr, &BaseController::SetJointAngularVelocity)
+    .def_property("desired_p", nullptr, &BaseController::SetJointPosition)
+    .def_property("desired_v", nullptr, &BaseController::SetJointVelocity)
+    .def_property("tau_feed_forward", nullptr, &BaseController::SetJointTau)
+    .def_property("tau_feed_forward", nullptr, &BaseController::SetJointTau)
+    .def_property("force_feed_forward", nullptr, &BaseController::SetJointForce)
+    .def_property("kp_joint", nullptr, &BaseController::SetKpJoint)
+    .def_property("kd_joint", nullptr, &BaseController::SetKdJoint)
+    .def_property("kp_cartesian", nullptr, &BaseController::SetKpCartesian)
+    .def_property("kd_cartesian", nullptr, &BaseController::SetKdCartesian);
 
   py::class_<LegProperty>(m, "LegProperty")
+    .def("__getitem__", [](py::object o, size_t i) {
+      if (i > 3) throw py::index_error();
+      LegProperty *ths = o.cast<LegProperty*>();
+      ths->SetLeg(i);
+      return o;
+    })
     .def_property_readonly("q", &LegProperty::GetJointAngular)
     .def_property("desired_q", nullptr, &LegProperty::SetJointAngular)
     .def_property_readonly("dq", &LegProperty::GetJointAngularVelocity)

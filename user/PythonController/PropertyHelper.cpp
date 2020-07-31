@@ -6,13 +6,8 @@
 
 namespace py = pybind11;
 
-LegProperty::LegProperty(LegController<float> *legCtrl, size_t leg)
-: _leg(leg), _legController(legCtrl)
-{
-  //  
-}
 
-Eigen::Matrix3f LegProperty::Vec3f2Mat3f(const Eigen::Vector3f &v)
+static Eigen::Matrix3f Vec3fToMat3f(const Eigen::Vector3f &v)
 {
   Eigen::Matrix3f m = Eigen::Matrix3f::Zero();
   m(0, 0) = v[0];
@@ -21,7 +16,7 @@ Eigen::Matrix3f LegProperty::Vec3f2Mat3f(const Eigen::Vector3f &v)
   return m;
 }
 
-Eigen::Vector3f LegProperty::PyObj2Vec3f(const pybind11::object& o)
+static Eigen::Vector3f PyObjToVec3f(const pybind11::object& o)
 {
   Eigen::Vector3f v = Eigen::Vector3f::Zero();
   if (py::isinstance<py::float_>(o)) {
@@ -39,6 +34,12 @@ Eigen::Vector3f LegProperty::PyObj2Vec3f(const pybind11::object& o)
   return v;
 }
 
+LegProperty::LegProperty(LegController<float> *legCtrl)
+: _leg(0), _legController(legCtrl)
+{
+  //  
+}
+
 Eigen::Vector3f LegProperty::GetJointAngular() const
 {
   return _legController ? _legController->datas[_leg].q : Eigen::Vector3f::Zero();
@@ -47,7 +48,7 @@ Eigen::Vector3f LegProperty::GetJointAngular() const
 void LegProperty::SetJointAngular(pybind11::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].qDes = PyObj2Vec3f(o);
+    _legController->commands[_leg].qDes = PyObjToVec3f(o);
   }
 }
 
@@ -59,7 +60,7 @@ Eigen::Vector3f LegProperty::GetJointAngularVelocity() const
 void LegProperty::SetJointAngularVelocity(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].qdDes = PyObj2Vec3f(o);
+    _legController->commands[_leg].qdDes = PyObjToVec3f(o);
   }
 }
 
@@ -71,7 +72,7 @@ Eigen::Vector3f LegProperty::GetJointPosition() const
 void LegProperty::SetJointPosition(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].pDes = PyObj2Vec3f(o);
+    _legController->commands[_leg].pDes = PyObjToVec3f(o);
   }
 }
 
@@ -83,7 +84,7 @@ Eigen::Vector3f LegProperty::GetJointVelocity() const
 void LegProperty::SetJointVelocity(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].vDes = PyObj2Vec3f(o);
+    _legController->commands[_leg].vDes = PyObjToVec3f(o);
   }
 }
 
@@ -95,42 +96,42 @@ Eigen::Vector3f LegProperty::GetJointTau() const
 void LegProperty::SetJointTau(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].tauFeedForward = PyObj2Vec3f(o);
+    _legController->commands[_leg].tauFeedForward = PyObjToVec3f(o);
   }
 }
 
 void LegProperty::SetJointForce(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].forceFeedForward = PyObj2Vec3f(o);
+    _legController->commands[_leg].forceFeedForward = PyObjToVec3f(o);
   }
 }
 
 void LegProperty::SetKpJoint(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].kpJoint = Vec3f2Mat3f(PyObj2Vec3f(o));
+    _legController->commands[_leg].kpJoint = Vec3fToMat3f(PyObjToVec3f(o));
   }
 }
 
 void LegProperty::SetKdJoint(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].kdJoint = Vec3f2Mat3f(PyObj2Vec3f(o));
+    _legController->commands[_leg].kdJoint = Vec3fToMat3f(PyObjToVec3f(o));
   }
 }
 
 void LegProperty::SetKpCartesian(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].kpCartesian = Vec3f2Mat3f(PyObj2Vec3f(o));
+    _legController->commands[_leg].kpCartesian = Vec3fToMat3f(PyObjToVec3f(o));
   }
 }
 
 void LegProperty::SetKdCartesian(py::object o)
 {
   if (_legController) {
-    _legController->commands[_leg].kdCartesian = Vec3f2Mat3f(PyObj2Vec3f(o));
+    _legController->commands[_leg].kdCartesian = Vec3fToMat3f(PyObjToVec3f(o));
   }
 }
 
