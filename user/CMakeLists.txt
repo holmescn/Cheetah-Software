@@ -1,3 +1,4 @@
+add_subdirectory(PythonController)
 add_subdirectory(JPos_Controller)
 add_subdirectory(Demo_Controller)
 add_subdirectory(Example_Leg_InvDyn)
