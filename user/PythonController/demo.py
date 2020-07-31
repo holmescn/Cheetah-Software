@@ -7,6 +7,7 @@ CONTROLLER_CLASS_NAME = "TestCtrl"
 class TestCtrl(BaseController):
     def __init__(self):
         BaseController.__init__(self)
+        self._instance = self
 
     def initialize(self):
         _ = self.leg(1).q

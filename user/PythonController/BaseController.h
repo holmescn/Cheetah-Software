@@ -4,14 +4,12 @@
 #include <pybind11/pybind11.h>
 #include <RobotController.h>
 
-class LegProxy;
-class StateProxy;
+class LegProperty;
+class StateProperty;
 
 class BaseController : public RobotController {
     pybind11::object _py_instance;
     pybind11::object _fn_initialize, _fn_run;
-
-    Eigen::Matrix<float, 4, 3> GetJointValue(LegControllerData<float>::* member);
 public:
 
     BaseController();
@@ -36,8 +34,8 @@ public:
     Eigen::Matrix<float, 4, 3> GetJointPosition() const;
     Eigen::Matrix<float, 4, 3> GetJointVelocity() const;
 
-    std::unique_ptr<LegProxy> GetLeg(size_t leg) const;
-    std::unique_ptr<StateProxy> GetState() const;
+    std::unique_ptr<LegProperty> GetLeg(size_t leg) const;
+    std::unique_ptr<StateProperty> GetState() const;
 };
 
 class PyBaseController : public BaseController {
@@ -46,6 +44,11 @@ public:
 
     void initialize() override;
     void run() override;
+
+    void initializeController() override;
+    void runController() override;
+    void updateVisualization() override;
+    ControlParameters* getUserControlParameters() override;
 };
 
 #endif // BASE_CONTROLLER_H

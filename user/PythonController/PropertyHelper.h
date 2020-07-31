@@ -7,16 +7,16 @@
 #include <pybind11/eigen.h>
 
 
-class LegProxy {
+class LegProperty {
     size_t _leg;
     LegController<float> *_legController;
 public:
-    LegProxy(LegController<float> *legCtrl, size_t leg);
-    LegProxy(const LegProxy &) = delete;
-    LegProxy(LegProxy &&) = delete;
-    LegProxy& operator=(const LegProxy &) = delete;
-    LegProxy& operator=(LegProxy &&) = delete;
-    ~LegProxy() = default;
+    LegProperty(LegController<float> *legCtrl, size_t leg);
+    LegProperty(const LegProperty &) = delete;
+    LegProperty(LegProperty &&) = delete;
+    LegProperty& operator=(const LegProperty &) = delete;
+    LegProperty& operator=(LegProperty &&) = delete;
+    ~LegProperty() = default;
 
     Eigen::Vector3f PyObj2Vec3f(const pybind11::object& o);
     Eigen::Matrix3f Vec3f2Mat3f(const Eigen::Vector3f &v);
@@ -43,15 +43,15 @@ public:
     void SetKdCartesian(pybind11::object v);
 };
 
-class StateProxy {
+class StateProperty {
     StateEstimatorContainer<float> *_stateEstimator;
 public:
-    StateProxy(StateEstimatorContainer<float> *estimator);
-    StateProxy(const StateProxy&) = delete;
-    StateProxy(StateProxy&&) = delete;
-    StateProxy& operator=(const StateProxy&) = delete;
-    StateProxy& operator=(StateProxy&&) = delete;
-    ~StateProxy() = default;
+    StateProperty(StateEstimatorContainer<float> *estimator);
+    StateProperty(const StateProperty&) = delete;
+    StateProperty(StateProperty&&) = delete;
+    StateProperty& operator=(const StateProperty&) = delete;
+    StateProperty& operator=(StateProperty&&) = delete;
+    ~StateProperty() = default;
 
     Eigen::Vector4f GetContact() const;
     Eigen::Vector3f GetPosition() const;
@@ -65,52 +65,5 @@ public:
     Eigen::Vector3f GetVWorld() const;
     Eigen::Vector3f GetOmegaWorld() const;
 };
-
-// class __attribute__((visibility("hidden"))) ProxyController : public RobotController {
-//     pybind11::object _f_initialize, _f_run;
-// public:
-//     ProxyController(pybind11::object obj);
-//     virtual ~ProxyController() = default;
-
-//     void initializeController() override {
-//         _f_initialize();
-//     }
-
-//     void runController() override {
-//         _f_run();
-//     }
-
-//     void updateVisualization() override {
-//         // ignore this callback
-//     }
-
-//     inline ControlParameters* getUserControlParameters() override {
-//         return nullptr;
-//     }
-
-//     inline std::unique_ptr<LegProxy> GetLeg(size_t leg) const {
-//         return std::make_unique<LegProxy>(_legController, leg);
-//     }
-
-//     inline std::unique_ptr<StateProxy> GetState() const {
-//         return std::make_unique<StateProxy>(_stateEstimator);
-//     }
-
-//     inline void SetEnable(bool bEnable) {
-//         _legController->setEnabled(bEnable);
-//     }
-
-//     inline void SetMaxTorque(int x) {
-//         _legController->_maxTorque = x;
-//     }
-
-//     inline void SetEncodeZeros(bool bEnable) {
-//         _legController->_zeroEncoders = bEnable;
-//     }
-
-//     inline void SetCalibrate(uint32_t calibrate) {
-//         _legController->_calibrateEncoders = calibrate;
-//     }
-// };
 
 #endif // PROPERTY_HELPER_H

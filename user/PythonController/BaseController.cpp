@@ -16,12 +16,12 @@ void BaseController::SetPyInstance(pybind11::object o)
     _py_instance = o;
     _fn_initialize = py::cast<py::none>(Py_None);
     if (py::hasattr(o, "initialize")) {
-        _fn_initialize = o["initialize"];
+        _fn_initialize = o.attr("initialize");
     }
 
     _fn_run = py::cast<py::none>(Py_None);
     if (py::hasattr(o, "run")) {
-        _fn_run = o["run"];
+        _fn_run = o.attr("run");
     }
 }
 
@@ -44,7 +44,7 @@ void BaseController::updateVisualization()
     // ignored right now.
 }
 
-ControlParameters* getUserControlParameters()
+ControlParameters* BaseController::getUserControlParameters()
 {
     return nullptr;
 }
@@ -69,17 +69,17 @@ void BaseController::SetCalibrate(uint32_t calibrate)
     _legController->_calibrateEncoders = calibrate;
 }
 
-std::unique_ptr<LegProxy> BaseController::GetLeg(size_t leg) const
+std::unique_ptr<LegProperty> BaseController::GetLeg(size_t leg) const
 {
     if (leg > 3) {
         throw std::invalid_argument("leg should be in [0, 3].");
     }
-    return std::make_unique<LegProxy>(_legController, leg);
+    return std::make_unique<LegProperty>(_legController, leg);
 }
 
-std::unique_ptr<StateProxy> BaseController::GetState() const
+std::unique_ptr<StateProperty> BaseController::GetState() const
 {
-    return std::make_unique<StateProxy>(_stateEstimator);
+    return std::make_unique<StateProperty>(_stateEstimator);
 }
 
 Eigen::Matrix<float, 4, 3> BaseController::GetJointAngular() const
@@ -141,5 +141,41 @@ void PyBaseController::run()
         void,            /* Return type */
         BaseController,  /* Parent class */
         run,             /* Name of function in C++ (must match Python name) */
+    );
+}
+
+void PyBaseController::initializeController()
+{
+    PYBIND11_OVERLOAD(
+        void,            /* Return type */
+        BaseController,  /* Parent class */
+        initializeController,
+    );
+}
+
+void PyBaseController::runController()
+{
+    PYBIND11_OVERLOAD(
+        void,            /* Return type */
+        BaseController,  /* Parent class */
+        runController,
+    );
+}
+
+void PyBaseController::updateVisualization()
+{
+    PYBIND11_OVERLOAD(
+        void,            /* Return type */
+        BaseController,  /* Parent class */
+        updateVisualization,
+    );
+}
+
+ControlParameters* PyBaseController::getUserControlParameters()
+{
+    PYBIND11_OVERLOAD(
+        ControlParameters*,
+        BaseController,
+        getUserControlParameters,
     );
 }

@@ -6,22 +6,13 @@
 
 namespace py = pybind11;
 
-ProxyController::ProxyController(pybind11::object obj)
-{
-  BaseController *base = obj.cast<BaseController*>();
-  base->SetProxy(this);
-
-  _f_run = obj.attr("run");
-  _f_initialize = obj.attr("initialize");
-}
-
-LegProxy::LegProxy(LegController<float> *legCtrl, size_t leg)
+LegProperty::LegProperty(LegController<float> *legCtrl, size_t leg)
 : _leg(leg), _legController(legCtrl)
 {
   //  
 }
 
-Eigen::Matrix3f LegProxy::Vec3f2Mat3f(const Eigen::Vector3f &v)
+Eigen::Matrix3f LegProperty::Vec3f2Mat3f(const Eigen::Vector3f &v)
 {
   Eigen::Matrix3f m = Eigen::Matrix3f::Zero();
   m(0, 0) = v[0];
@@ -30,7 +21,7 @@ Eigen::Matrix3f LegProxy::Vec3f2Mat3f(const Eigen::Vector3f &v)
   return m;
 }
 
-Eigen::Vector3f LegProxy::PyObj2Vec3f(const pybind11::object& o)
+Eigen::Vector3f LegProperty::PyObj2Vec3f(const pybind11::object& o)
 {
   Eigen::Vector3f v = Eigen::Vector3f::Zero();
   if (py::isinstance<py::float_>(o)) {
@@ -48,108 +39,108 @@ Eigen::Vector3f LegProxy::PyObj2Vec3f(const pybind11::object& o)
   return v;
 }
 
-Eigen::Vector3f LegProxy::GetJointAngular() const
+Eigen::Vector3f LegProperty::GetJointAngular() const
 {
   return _legController ? _legController->datas[_leg].q : Eigen::Vector3f::Zero();
 }
 
-void LegProxy::SetJointAngular(pybind11::object o)
+void LegProperty::SetJointAngular(pybind11::object o)
 {
   if (_legController) {
     _legController->commands[_leg].qDes = PyObj2Vec3f(o);
   }
 }
 
-Eigen::Vector3f LegProxy::GetJointAngularVelocity() const
+Eigen::Vector3f LegProperty::GetJointAngularVelocity() const
 {
   return _legController ? _legController->datas[_leg].qd : Eigen::Vector3f::Zero();
 }
 
-void LegProxy::SetJointAngularVelocity(py::object o)
+void LegProperty::SetJointAngularVelocity(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].qdDes = PyObj2Vec3f(o);
   }
 }
 
-Eigen::Vector3f LegProxy::GetJointPosition() const
+Eigen::Vector3f LegProperty::GetJointPosition() const
 {
   return _legController ? _legController->datas[_leg].p : Eigen::Vector3f::Zero();
 }
 
-void LegProxy::SetJointPosition(py::object o)
+void LegProperty::SetJointPosition(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].pDes = PyObj2Vec3f(o);
   }
 }
 
-Eigen::Vector3f LegProxy::GetJointVelocity() const
+Eigen::Vector3f LegProperty::GetJointVelocity() const
 {
   return _legController ? _legController->datas[_leg].v : Eigen::Vector3f::Zero();
 }
 
-void LegProxy::SetJointVelocity(py::object o)
+void LegProperty::SetJointVelocity(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].vDes = PyObj2Vec3f(o);
   }
 }
 
-Eigen::Vector3f LegProxy::GetJointTau() const
+Eigen::Vector3f LegProperty::GetJointTau() const
 {
   return _legController ? _legController->datas[_leg].tauEstimate : Eigen::Vector3f::Zero();
 }
 
-void LegProxy::SetJointTau(py::object o)
+void LegProperty::SetJointTau(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].tauFeedForward = PyObj2Vec3f(o);
   }
 }
 
-void LegProxy::SetJointForce(py::object o)
+void LegProperty::SetJointForce(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].forceFeedForward = PyObj2Vec3f(o);
   }
 }
 
-void LegProxy::SetKpJoint(py::object o)
+void LegProperty::SetKpJoint(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].kpJoint = Vec3f2Mat3f(PyObj2Vec3f(o));
   }
 }
 
-void LegProxy::SetKdJoint(py::object o)
+void LegProperty::SetKdJoint(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].kdJoint = Vec3f2Mat3f(PyObj2Vec3f(o));
   }
 }
 
-void LegProxy::SetKpCartesian(py::object o)
+void LegProperty::SetKpCartesian(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].kpCartesian = Vec3f2Mat3f(PyObj2Vec3f(o));
   }
 }
 
-void LegProxy::SetKdCartesian(py::object o)
+void LegProperty::SetKdCartesian(py::object o)
 {
   if (_legController) {
     _legController->commands[_leg].kdCartesian = Vec3f2Mat3f(PyObj2Vec3f(o));
   }
 }
 
-StateProxy::StateProxy(StateEstimatorContainer<float> *estimator)
+StateProperty::StateProperty(StateEstimatorContainer<float> *estimator)
 : _stateEstimator(estimator)
 {
 
 }
 
-Eigen::Vector4f StateProxy::GetContact() const
+Eigen::Vector4f StateProperty::GetContact() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -158,7 +149,7 @@ Eigen::Vector4f StateProxy::GetContact() const
   return Eigen::Vector4f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetPosition() const
+Eigen::Vector3f StateProperty::GetPosition() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -167,7 +158,7 @@ Eigen::Vector3f StateProxy::GetPosition() const
   return Eigen::Vector3f::Zero();
 }
   
-Eigen::Vector4f StateProxy::GetOrientation() const
+Eigen::Vector4f StateProperty::GetOrientation() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -176,7 +167,7 @@ Eigen::Vector4f StateProxy::GetOrientation() const
   return Eigen::Vector4f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetVBody() const
+Eigen::Vector3f StateProperty::GetVBody() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -185,7 +176,7 @@ Eigen::Vector3f StateProxy::GetVBody() const
   return Eigen::Vector3f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetOmegaBody() const
+Eigen::Vector3f StateProperty::GetOmegaBody() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -194,7 +185,7 @@ Eigen::Vector3f StateProxy::GetOmegaBody() const
   return Eigen::Vector3f::Zero();
 }
 
-Eigen::Matrix3f StateProxy::GetRBody() const
+Eigen::Matrix3f StateProperty::GetRBody() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -203,7 +194,7 @@ Eigen::Matrix3f StateProxy::GetRBody() const
   return Eigen::Matrix3f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetABody() const
+Eigen::Vector3f StateProperty::GetABody() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -212,7 +203,7 @@ Eigen::Vector3f StateProxy::GetABody() const
   return Eigen::Vector3f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetRPY() const
+Eigen::Vector3f StateProperty::GetRPY() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -221,7 +212,7 @@ Eigen::Vector3f StateProxy::GetRPY() const
   return Eigen::Vector3f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetAWorld() const
+Eigen::Vector3f StateProperty::GetAWorld() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -230,7 +221,7 @@ Eigen::Vector3f StateProxy::GetAWorld() const
   return Eigen::Vector3f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetVWorld() const
+Eigen::Vector3f StateProperty::GetVWorld() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();
@@ -239,7 +230,7 @@ Eigen::Vector3f StateProxy::GetVWorld() const
   return Eigen::Vector3f::Zero();
 }
 
-Eigen::Vector3f StateProxy::GetOmegaWorld() const
+Eigen::Vector3f StateProperty::GetOmegaWorld() const
 {
   if (_stateEstimator) {
     auto r = _stateEstimator->getResult();

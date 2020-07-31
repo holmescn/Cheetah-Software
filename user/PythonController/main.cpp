@@ -18,7 +18,7 @@
 #include "Types.h"
 #include "SimulationBridge.h"
 #include "RobotController.h"
-#include "ProxyController.h"
+#include "PropertyHelper.h"
 #include "BaseController.h"
 
 namespace py = pybind11;
@@ -30,40 +30,41 @@ PYBIND11_EMBEDDED_MODULE(robot, m) {
     .def("run", &BaseController::run)
     .def("leg", &BaseController::GetLeg)
     .def_property_readonly("state", &BaseController::GetState)
+    .def_property("_instance", nullptr, &BaseController::SetPyInstance)
     .def_property("enable", nullptr, &BaseController::SetEnable)
     .def_property("max_torque", nullptr, &BaseController::SetMaxTorque)
     .def_property("encode_zeros", nullptr, &BaseController::SetEncodeZeros)
     .def_property("calibrate", nullptr, &BaseController::SetCalibrate);
 
-  py::class_<LegProxy>(m, "LegProxy")
-    .def_property_readonly("q", &LegProxy::GetJointAngular)
-    .def_property("desired_q", nullptr, &LegProxy::SetJointAngular)
-    .def_property_readonly("dq", &LegProxy::GetJointAngularVelocity)
-    .def_property("desired_dq", nullptr, &LegProxy::SetJointAngularVelocity)
-    .def_property_readonly("p", &LegProxy::GetJointPosition)
-    .def_property("desired_p", nullptr, &LegProxy::SetJointPosition)
-    .def_property_readonly("v", &LegProxy::GetJointVelocity)
-    .def_property("desired_v", nullptr, &LegProxy::SetJointVelocity)
-    .def_property_readonly("tau", &LegProxy::GetJointTau)
-    .def_property("tau_feed_forward", nullptr, &LegProxy::SetJointTau)
-    .def_property("force_feed_forward", nullptr, &LegProxy::SetJointTau)
-    .def_property("kp_joint", nullptr, &LegProxy::SetKpJoint)
-    .def_property("kd_joint", nullptr, &LegProxy::SetKdJoint)
-    .def_property("kp_cartesian", nullptr, &LegProxy::SetKpCartesian)
-    .def_property("kd_cartesian", nullptr, &LegProxy::SetKdCartesian);
+  py::class_<LegProperty>(m, "LegProperty")
+    .def_property_readonly("q", &LegProperty::GetJointAngular)
+    .def_property("desired_q", nullptr, &LegProperty::SetJointAngular)
+    .def_property_readonly("dq", &LegProperty::GetJointAngularVelocity)
+    .def_property("desired_dq", nullptr, &LegProperty::SetJointAngularVelocity)
+    .def_property_readonly("p", &LegProperty::GetJointPosition)
+    .def_property("desired_p", nullptr, &LegProperty::SetJointPosition)
+    .def_property_readonly("v", &LegProperty::GetJointVelocity)
+    .def_property("desired_v", nullptr, &LegProperty::SetJointVelocity)
+    .def_property_readonly("tau", &LegProperty::GetJointTau)
+    .def_property("tau_feed_forward", nullptr, &LegProperty::SetJointTau)
+    .def_property("force_feed_forward", nullptr, &LegProperty::SetJointTau)
+    .def_property("kp_joint", nullptr, &LegProperty::SetKpJoint)
+    .def_property("kd_joint", nullptr, &LegProperty::SetKdJoint)
+    .def_property("kp_cartesian", nullptr, &LegProperty::SetKpCartesian)
+    .def_property("kd_cartesian", nullptr, &LegProperty::SetKdCartesian);
 
-  py::class_<StateProxy>(m, "StateProxy")
-    .def_property_readonly("contact", &StateProxy::GetContact)
-    .def_property_readonly("position", &StateProxy::GetPosition)
-    .def_property_readonly("orientation", &StateProxy::GetOrientation)
-    .def_property_readonly("a_body", &StateProxy::GetABody)
-    .def_property_readonly("v_body", &StateProxy::GetVBody)
-    .def_property_readonly("omega_body", &StateProxy::GetOmegaBody)
-    .def_property_readonly("r_body", &StateProxy::GetRBody)
-    .def_property_readonly("a_world", &StateProxy::GetAWorld)
-    .def_property_readonly("v_world", &StateProxy::GetVWorld)
-    .def_property_readonly("omega_world", &StateProxy::GetOmegaWorld)
-    .def_property_readonly("rpy", &StateProxy::GetRPY);
+  py::class_<StateProperty>(m, "StateProperty")
+    .def_property_readonly("contact", &StateProperty::GetContact)
+    .def_property_readonly("position", &StateProperty::GetPosition)
+    .def_property_readonly("orientation", &StateProperty::GetOrientation)
+    .def_property_readonly("a_body", &StateProperty::GetABody)
+    .def_property_readonly("v_body", &StateProperty::GetVBody)
+    .def_property_readonly("omega_body", &StateProperty::GetOmegaBody)
+    .def_property_readonly("r_body", &StateProperty::GetRBody)
+    .def_property_readonly("a_world", &StateProperty::GetAWorld)
+    .def_property_readonly("v_world", &StateProperty::GetVWorld)
+    .def_property_readonly("omega_world", &StateProperty::GetOmegaWorld)
+    .def_property_readonly("rpy", &StateProperty::GetRPY);
 }
 
 void LoadScript(const char* filename, py::object &scope)
@@ -131,17 +132,17 @@ int main(int argc, char** argv) {
   printf("   Driver: %s\n", cfg.simulated ? "Development Simulation Driver" : "Quadruped Driver");
 
   // Create controller
-  puts("[DEBUG] Create global controller instance");
   py::exec("g_controller = " + controllerClassName + "()", scope);
-  puts("[DEBUG] Fetch global controller instance");
-  std::unique_ptr<ProxyController> proxy = std::make_unique<ProxyController>(scope["g_controller"]);
+  BaseController *controller = scope["g_controller"].cast<BaseController*>();
+  controller->initializeController();
+  return EXIT_SUCCESS;
 
   // dispatch the appropriate driver
   if (cfg._robot == RobotType::MINI_CHEETAH) {
-    SimulationBridge simulationBridge(cfg._robot, proxy.get());
+    SimulationBridge simulationBridge(cfg._robot, controller);
     simulationBridge.run();
   } else if (cfg._robot == RobotType::CHEETAH_3) {
-    SimulationBridge simulationBridge(cfg._robot, proxy.get());
+    SimulationBridge simulationBridge(cfg._robot, controller);
     simulationBridge.run();
   } else {
     puts("[ERROR] unknown robot mode");
