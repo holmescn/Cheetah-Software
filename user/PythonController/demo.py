@@ -39,3 +39,4 @@ class TestCtrl(BaseController):
         _ = self.state.a_world
         _ = self.state.v_world
         _ = self.state.omega_world
+        _ = self.q

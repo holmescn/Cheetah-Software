@@ -40,99 +40,98 @@ LegProperty::LegProperty(LegController<float> *legCtrl)
   //  
 }
 
+Eigen::Vector3f LegProperty::GetJointVec(Eigen::Vector3f LegControllerData<float>::* member) const
+{
+  return _legController ? (_legController->datas[_leg].*member) : Eigen::Vector3f::Zero();
+}
+
+void LegProperty::SetJointVec(Eigen::Vector3f LegControllerCommand<float>::* member, pybind11::object &o)
+{
+  if (_legController) {
+    _legController->commands[_leg].*member = PyObjToVec3f(o);
+  }
+}
+
+void LegProperty::SetJointMat(Eigen::Matrix3f LegControllerCommand<float>::* member, pybind11::object &o)
+{
+  if (_legController) {
+    _legController->commands[_leg].*member = Vec3fToMat3f(PyObjToVec3f(o));
+  }
+}
+
 Eigen::Vector3f LegProperty::GetJointAngular() const
 {
-  return _legController ? _legController->datas[_leg].q : Eigen::Vector3f::Zero();
+  return GetJointVec(&LegControllerData<float>::q);
 }
 
 void LegProperty::SetJointAngular(pybind11::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].qDes = PyObjToVec3f(o);
-  }
+  SetJointVec(&LegControllerCommand<float>::qDes, o);
 }
 
 Eigen::Vector3f LegProperty::GetJointAngularVelocity() const
 {
-  return _legController ? _legController->datas[_leg].qd : Eigen::Vector3f::Zero();
+  return GetJointVec(&LegControllerData<float>::qd);
 }
 
 void LegProperty::SetJointAngularVelocity(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].qdDes = PyObjToVec3f(o);
-  }
+  SetJointVec(&LegControllerCommand<float>::qdDes, o);
 }
 
 Eigen::Vector3f LegProperty::GetJointPosition() const
 {
-  return _legController ? _legController->datas[_leg].p : Eigen::Vector3f::Zero();
+  return GetJointVec(&LegControllerData<float>::p);
 }
 
 void LegProperty::SetJointPosition(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].pDes = PyObjToVec3f(o);
-  }
+  SetJointVec(&LegControllerCommand<float>::pDes, o);
 }
 
 Eigen::Vector3f LegProperty::GetJointVelocity() const
 {
-  return _legController ? _legController->datas[_leg].v : Eigen::Vector3f::Zero();
+  return GetJointVec(&LegControllerData<float>::v);
 }
 
 void LegProperty::SetJointVelocity(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].vDes = PyObjToVec3f(o);
-  }
+  SetJointVec(&LegControllerCommand<float>::vDes, o);
 }
 
 Eigen::Vector3f LegProperty::GetJointTau() const
 {
-  return _legController ? _legController->datas[_leg].tauEstimate : Eigen::Vector3f::Zero();
+  return GetJointVec(&LegControllerData<float>::tauEstimate);
 }
 
 void LegProperty::SetJointTau(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].tauFeedForward = PyObjToVec3f(o);
-  }
+  SetJointVec(&LegControllerCommand<float>::tauFeedForward, o);
 }
 
 void LegProperty::SetJointForce(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].forceFeedForward = PyObjToVec3f(o);
-  }
+  SetJointVec(&LegControllerCommand<float>::forceFeedForward, o);
 }
 
 void LegProperty::SetKpJoint(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].kpJoint = Vec3fToMat3f(PyObjToVec3f(o));
-  }
+  SetJointMat(&LegControllerCommand<float>::kpJoint, o);
 }
 
 void LegProperty::SetKdJoint(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].kdJoint = Vec3fToMat3f(PyObjToVec3f(o));
-  }
+  SetJointMat(&LegControllerCommand<float>::kdJoint, o);
 }
 
 void LegProperty::SetKpCartesian(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].kpCartesian = Vec3fToMat3f(PyObjToVec3f(o));
-  }
+  SetJointMat(&LegControllerCommand<float>::kpCartesian, o);
 }
 
 void LegProperty::SetKdCartesian(py::object o)
 {
-  if (_legController) {
-    _legController->commands[_leg].kdCartesian = Vec3fToMat3f(PyObjToVec3f(o));
-  }
+  SetJointMat(&LegControllerCommand<float>::kdCartesian, o);
 }
 
 StateProperty::StateProperty(StateEstimatorContainer<float> *estimator)
@@ -143,99 +142,55 @@ StateProperty::StateProperty(StateEstimatorContainer<float> *estimator)
 
 Eigen::Vector4f StateProperty::GetContact() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.contactEstimate;
-  }
-  return Eigen::Vector4f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::contactEstimate);
 }
 
 Eigen::Vector3f StateProperty::GetPosition() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.position;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::position);
 }
-  
+
 Eigen::Vector4f StateProperty::GetOrientation() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.orientation;
-  }
-  return Eigen::Vector4f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::orientation);
 }
 
 Eigen::Vector3f StateProperty::GetVBody() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.vBody;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::vBody);
 }
 
 Eigen::Vector3f StateProperty::GetOmegaBody() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.omegaBody;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::omegaBody);
 }
 
 Eigen::Matrix3f StateProperty::GetRBody() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.rBody;
-  }
-  return Eigen::Matrix3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::rBody);
 }
 
 Eigen::Vector3f StateProperty::GetABody() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.aBody;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::aBody);
 }
 
 Eigen::Vector3f StateProperty::GetRPY() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.rpy;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::rpy);
 }
 
 Eigen::Vector3f StateProperty::GetAWorld() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.aWorld;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::aWorld);
 }
 
 Eigen::Vector3f StateProperty::GetVWorld() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.vWorld;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::vWorld);
 }
 
 Eigen::Vector3f StateProperty::GetOmegaWorld() const
 {
-  if (_stateEstimator) {
-    auto r = _stateEstimator->getResult();
-    return r.omegaWorld;
-  }
-  return Eigen::Vector3f::Zero();
+  return GetStateVec3f(&StateEstimate<float>::omegaWorld);
 }

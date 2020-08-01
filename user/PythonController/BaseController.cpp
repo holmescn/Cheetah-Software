@@ -1,4 +1,5 @@
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wattributes"
 
 #include <pybind11/pybind11.h>
 #include "BaseController.h"
@@ -81,133 +82,123 @@ std::unique_ptr<StateProperty> BaseController::GetState() const
 
 Matrix43f BaseController::GetJointMatrix(Eigen::Vector3f LegControllerData<float>::* member) const
 {
-    Matrix43f m;
-    for (int l(0); l<4; ++l) {
-        for (int j(0); j<3; ++j) {
-            m(l, j) = (_legController->datas[l].*member)[j];
+    Matrix43f m = Matrix43f::Zero();
+    if (_legController) {
+        for (int l(0); l<4; ++l) {
+            m.row(l) = _legController->datas[l].*member;
         }
     }
     return m;
 }
 
-void BaseController::SetJointMatrix(Eigen::Vector3f LegControllerCommand<float>::* member, const Matrix43f &m)
+void BaseController::SetJointMatrix(Eigen::Vector3f LegControllerCommand<float>::* member, const pybind11::object &o)
 {
-    for (int l(0); l<4; ++l) {
-        for (int j(0); j<3; ++j) {
-            (_legController->commands[l].*member)[j] = m(l, j);
+    if (_legController) {
+        if (py::isinstance<py::float_>(o)) {
+            Eigen::Vector3f v = Eigen::Vector3f::Ones() * o.cast<float>();
+            for (int l(0); l<4; ++l) {
+                _legController->commands[l].*member = v;
+            }
+        } else {
+            auto m = o.cast<Matrix43f>();
+            for (int l(0); l<4; ++l) {
+                _legController->commands[l].*member = m.row(l);
+            }
         }
     }
 }
 
-void BaseController::SetJointMatrix(Eigen::Matrix3f LegControllerCommand<float>::* member, const Matrix43f &m)
+void BaseController::SetJointMatrix(Eigen::Matrix3f LegControllerCommand<float>::* member, const pybind11::object &o)
 {
-    for (int l(0); l<4; ++l) {
-        for (int j(0); j<3; ++j) {
-            (_legController->commands[l].*member)(j, j) = m(l, j);
+    if (_legController) {
+        if (py::isinstance<py::float_>(o)) {
+            float v = o.cast<float>();
+            for (int l(0); l<4; ++l) {
+                auto &mm = _legController->commands[l].*member;
+                for (int j(0); j<3; ++j) {
+                    mm(j, j) = v;
+                }
+            }
+        } else {
+            auto m = o.cast<Matrix43f>();
+            for (int l(0); l<4; ++l) {
+                auto &mm = _legController->commands[l].*member;
+                for (int j(0); j<3; ++j) {
+                    mm(j, j) = m(l, j);
+                }
+            }
         }
     }
 }
 
 Matrix43f BaseController::GetJointAngular() const
 {
-    if (_legController) {
-        return GetJointMatrix(&LegControllerData<float>::q);
-    }
-    return Matrix43f::Zero();
+    return GetJointMatrix(&LegControllerData<float>::q);
 }
 
 Matrix43f BaseController::GetJointAngularVelocity() const
 {
-    if (_legController) {
-        return GetJointMatrix(&LegControllerData<float>::qd);
-    }
-    return Matrix43f::Zero();
+    return GetJointMatrix(&LegControllerData<float>::qd);
 }
 
 Matrix43f BaseController::GetJointPosition() const
 {
-    if (_legController) {
-        return GetJointMatrix(&LegControllerData<float>::p);
-    }
-    return Matrix43f::Zero();
+    return GetJointMatrix(&LegControllerData<float>::p);
 }
 
 Matrix43f BaseController::GetJointVelocity() const
 {
-    if (_legController) {
-        return GetJointMatrix(&LegControllerData<float>::v);
-    }
-    return Matrix43f::Zero();
+    return GetJointMatrix(&LegControllerData<float>::v);
 }
 
-void BaseController::SetJointAngular(Matrix43f m)
+void BaseController::SetJointAngular(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::qDes, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::qDes, o);
 }
 
-void BaseController::SetJointAngularVelocity(Matrix43f m)
+void BaseController::SetJointAngularVelocity(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::qdDes, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::qdDes, o);
 }
 
-void BaseController::SetJointPosition(Matrix43f m)
+void BaseController::SetJointPosition(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::pDes, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::pDes, o);
 }
 
-void BaseController::SetJointVelocity(Matrix43f m)
+void BaseController::SetJointVelocity(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::vDes, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::vDes, o);
 }
 
-void BaseController::SetJointTau(Matrix43f m)
+void BaseController::SetJointTau(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::tauFeedForward, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::tauFeedForward, o);
 }
 
-void BaseController::SetJointForce(Matrix43f m)
+void BaseController::SetJointForce(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::forceFeedForward, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::forceFeedForward, o);
 }
 
-void BaseController::SetKpJoint(Matrix43f m)
+void BaseController::SetKpJoint(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::kpJoint, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::kpJoint, o);
 }
 
-void BaseController::SetKdJoint(Matrix43f m)
+void BaseController::SetKdJoint(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::kdJoint, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::kdJoint, o);
 }
 
-void BaseController::SetKpCartesian(Matrix43f m)
+void BaseController::SetKpCartesian(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::kpCartesian, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::kpCartesian, o);
 }
 
-void BaseController::SetKdCartesian(Matrix43f m)
+void BaseController::SetKdCartesian(pybind11::object o)
 {
-    if (_legController) {
-        SetJointMatrix(&LegControllerCommand<float>::kdCartesian, m);
-    }
+    SetJointMatrix(&LegControllerCommand<float>::kdCartesian, o);
 }
 
 void PyBaseController::initialize()
@@ -225,41 +216,5 @@ void PyBaseController::run()
         void,            /* Return type */
         BaseController,  /* Parent class */
         run,             /* Name of function in C++ (must match Python name) */
-    );
-}
-
-void PyBaseController::initializeController()
-{
-    PYBIND11_OVERLOAD(
-        void,            /* Return type */
-        BaseController,  /* Parent class */
-        initializeController,
-    );
-}
-
-void PyBaseController::runController()
-{
-    PYBIND11_OVERLOAD(
-        void,            /* Return type */
-        BaseController,  /* Parent class */
-        runController,
-    );
-}
-
-void PyBaseController::updateVisualization()
-{
-    PYBIND11_OVERLOAD(
-        void,            /* Return type */
-        BaseController,  /* Parent class */
-        updateVisualization,
-    );
-}
-
-ControlParameters* PyBaseController::getUserControlParameters()
-{
-    PYBIND11_OVERLOAD(
-        ControlParameters*,
-        BaseController,
-        getUserControlParameters,
     );
 }

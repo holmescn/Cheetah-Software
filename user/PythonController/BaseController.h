@@ -13,8 +13,8 @@ class BaseController : public RobotController {
     pybind11::object _py_instance;
     pybind11::object _fn_initialize, _fn_run;
     Matrix43f GetJointMatrix(Eigen::Vector3f LegControllerData<float>::* member) const;
-    void SetJointMatrix(Eigen::Vector3f LegControllerCommand<float>::* member, const Matrix43f &m);
-    void SetJointMatrix(Eigen::Matrix3f LegControllerCommand<float>::* member, const Matrix43f &m);
+    void SetJointMatrix(Eigen::Vector3f LegControllerCommand<float>::* member, const pybind11::object &o);
+    void SetJointMatrix(Eigen::Matrix3f LegControllerCommand<float>::* member, const pybind11::object &o);
 public:
 
     BaseController();
@@ -39,16 +39,16 @@ public:
     Matrix43f GetJointPosition() const;
     Matrix43f GetJointVelocity() const;
 
-    void SetJointAngular(Matrix43f m);
-    void SetJointAngularVelocity(Matrix43f m);
-    void SetJointPosition(Matrix43f m);
-    void SetJointVelocity(Matrix43f m);
-    void SetJointTau(Matrix43f m);
-    void SetJointForce(Matrix43f m);
-    void SetKpJoint(Matrix43f m);
-    void SetKdJoint(Matrix43f m);
-    void SetKpCartesian(Matrix43f m);
-    void SetKdCartesian(Matrix43f m);
+    void SetJointAngular(pybind11::object o);
+    void SetJointAngularVelocity(pybind11::object o);
+    void SetJointPosition(pybind11::object o);
+    void SetJointVelocity(pybind11::object o);
+    void SetJointTau(pybind11::object o);
+    void SetJointForce(pybind11::object o);
+    void SetKpJoint(pybind11::object o);
+    void SetKdJoint(pybind11::object o);
+    void SetKpCartesian(pybind11::object o);
+    void SetKdCartesian(pybind11::object o);
 
     std::unique_ptr<LegProperty> GetLeg() const;
     std::unique_ptr<StateProperty> GetState() const;
@@ -60,11 +60,6 @@ public:
 
     void initialize() override;
     void run() override;
-
-    void initializeController() override;
-    void runController() override;
-    void updateVisualization() override;
-    ControlParameters* getUserControlParameters() override;
 };
 
 #endif // BASE_CONTROLLER_H

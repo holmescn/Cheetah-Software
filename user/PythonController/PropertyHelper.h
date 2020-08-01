@@ -10,6 +10,10 @@
 class LegProperty {
     uint32_t _leg;
     LegController<float> *_legController;
+    Eigen::Vector3f GetJointVec(Eigen::Vector3f LegControllerData<float>::* member) const;
+    void SetJointVec(Eigen::Vector3f LegControllerCommand<float>::* member, pybind11::object &o);
+    void SetJointMat(Eigen::Matrix3f LegControllerCommand<float>::* member, pybind11::object &o);
+
 public:
     LegProperty(LegController<float> *legCtrl);
     LegProperty(const LegProperty &) = delete;
@@ -44,6 +48,14 @@ public:
 
 class StateProperty {
     StateEstimatorContainer<float> *_stateEstimator;
+    template<typename T>
+    inline T GetStateVec3f(T StateEstimate<float>::* member) const {
+        if (_stateEstimator) {
+            auto r = _stateEstimator->getResult();
+            return r.*member;
+        }
+        return T::Zero();
+    }
 public:
     StateProperty(StateEstimatorContainer<float> *estimator);
     StateProperty(const StateProperty&) = delete;

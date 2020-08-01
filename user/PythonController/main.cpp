@@ -155,17 +155,22 @@ int main(int argc, char** argv) {
   // Create controller
   py::exec("g_controller = " + controllerClassName + "()", scope);
   BaseController *controller = scope["g_controller"].cast<BaseController*>();
-  controller->initializeController();
-  return EXIT_SUCCESS;
 
   // dispatch the appropriate driver
-  if (cfg._robot == RobotType::MINI_CHEETAH) {
+  switch (cfg._robot) {
+  case RobotType::MINI_CHEETAH:
+  {
     SimulationBridge simulationBridge(cfg._robot, controller);
     simulationBridge.run();
-  } else if (cfg._robot == RobotType::CHEETAH_3) {
+  }
+    break;
+  case RobotType::CHEETAH_3:
+  {
     SimulationBridge simulationBridge(cfg._robot, controller);
     simulationBridge.run();
-  } else {
+  }
+    break;
+  default:
     puts("[ERROR] unknown robot mode");
     return EXIT_FAILURE;
   }
